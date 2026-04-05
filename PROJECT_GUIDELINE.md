@@ -952,11 +952,11 @@ CAIDA's AS-relationship data is *inferred*, not ground truth. Some relationships
 
 | # | Research Item | Key Output | Effort | Status |
 |---|---|---|---|---|
-| 1 | Partial deployment curve | Line chart (detection % vs. adoption %) | Low | ☐ |
-| 2 | ROA vs. ASPA comparison | Venn diagram / 2×2 table | Medium | ☐ |
-| 3 | Per-country analysis | Bar chart by country/region | Medium | ☐ |
-| 4 | Path length statistics | CDF plot + statistical test | Low | ☐ |
-| 5 | Incident case study | Single flagged path proof | Medium | ☐ |
+| 1 | Partial deployment curve | Line chart (detection % vs. adoption %) | Low | ✅ Done |
+| 2 | ROA vs. ASPA comparison | Venn diagram / 2×2 table | Medium | ✅ Done |
+| 3 | Per-country analysis | Bar chart by country/region | Medium | ✅ Done |
+| 4 | Path length statistics | CDF plot + statistical test | Low | ✅ Done |
+| 5 | Incident case study | Single flagged path proof | Medium | ✅ Done |
 | 6 | False positive analysis | Qualitative discussion | Low | ☐ |
 
 ---
