@@ -827,11 +827,96 @@ print(f'Records: {count}')
 
 ---
 
-## 11. Elevation Ideas (Post-Baseline Enhancements)
+## 11. Extended Research (Post-Baseline Enhancements)
 
-Once the baseline pipeline (Phases 1–5) is complete and working, these enhancements would push the project from "good" to "excellent" at the master's level. Each is independent — pick any combination.
+Once the baseline pipeline (Phases 1–5) is complete and working, these enhancements push the project from "good" to "excellent" at the master's level. They are organized into three tiers by impact-to-effort ratio.
 
-### 11.1 Real-World Incident Case Study
+---
+
+### Tier 1 — Must-Do (Highest Payoff)
+
+#### 11.1 Partial Deployment Curve
+
+Instead of binary "0% vs. 100% ASPA deployment," model incremental adoption:
+
+1. Randomly select X% of ASes to have ASPA records (from CAIDA data).
+2. Run the analysis engine with only that subset.
+3. Repeat for X = 10%, 20%, 30%, ..., 100%.
+4. Plot: **leak detection rate vs. ASPA deployment percentage**.
+
+**Why this matters**: It answers the practical question "How much of the internet needs to deploy ASPA before it becomes useful?" If the curve shows diminishing returns after 50%, that's a powerful policy argument. Most ASPA papers assume binary full/zero deployment — this is a **novel contribution**.
+
+**Deliverables**:
+- `src/partial_deployment.py` — sweep script
+- `output/charts/partial_deployment_curve.png` — line chart (detection % vs. adoption %)
+- `output/partial_deployment_stats.json` — raw data points
+
+**Effort**: Low — subsample the existing CAIDA cache and re-run `analyze.py` in a loop.
+
+#### 11.2 ROA vs. ASPA Comparison
+
+Run **Route Origin Validation (ROV)** on the same dataset alongside ASPA and compare:
+
+- ROV checks: "Is the **origin AS** authorized to announce this prefix?" (using ROA records from Routinator)
+- ASPA checks: "Is the **entire path** structurally valid?" (using ASPA records)
+
+**What to show**: A 2×2 contingency table and Venn diagram of:
+- Routes caught by ROV only
+- Routes caught by ASPA only
+- Routes caught by both
+- Routes caught by neither
+
+This directly demonstrates why ASPA is needed *in addition to* ROA — they protect against different attack types (origin spoofing vs. path manipulation).
+
+**Deliverables**:
+- `src/rov_comparison.py` — ROV checker + combined analysis
+- `output/charts/roa_vs_aspa_venn.png` — Venn diagram
+- `output/rov_vs_aspa_stats.json` — comparison statistics
+
+**Effort**: Medium — need to parse ROA records and implement basic ROV logic.
+
+---
+
+### Tier 2 — High Value, Moderate Effort
+
+#### 11.3 Per-Country / Per-Region Analysis
+
+Map offending ASNs to countries using RIR delegation files (freely available, ~2 MB each).
+
+**What to show**:
+- Bar chart or heatmap of route leak sources by country/region
+- Which regions produce the most leaks?
+- Which RIRs (ARIN, RIPE, APNIC, etc.) have the best/worst ASPA coverage?
+
+**Deliverables**:
+- `src/geo_analysis.py` — country mapping + aggregation
+- `data/delegated-*` — RIR delegation files
+- `output/charts/leaks_by_country.png` — geographic bar chart
+- `output/geo_stats.json` — per-country leak counts
+
+**Effort**: Medium — download RIR files, map ASN → country, aggregate.
+
+#### 11.4 Path Length as Leak Predictor
+
+Compare AS-path length distributions of valid vs. invalid routes. Route leaks tend to create longer paths because the leaked path traverses extra ASes.
+
+**What to show**:
+- CDF plot of path lengths for valid vs. invalid routes
+- Statistical hypothesis test (Mann-Whitney U or KS test) with p-value
+- Mean/median path length comparison table
+
+**Deliverables**:
+- `src/path_length_analysis.py` — statistical analysis
+- `output/charts/path_length_cdf.png` — CDF comparison plot
+- One p-value proving leaked paths are statistically longer
+
+**Effort**: Low — data already exists in the Phase 4 CSVs; ~30 lines of analysis code.
+
+---
+
+### Tier 3 — Nice-to-Have (If Time Permits)
+
+#### 11.5 Real-World Incident Case Study
 
 Pick a documented BGP route leak event and replay it through our engine to prove detection.
 
@@ -843,49 +928,36 @@ Pick a documented BGP route leak event and replay it through our engine to prove
 
 **What to do**: Download the MRT data from the incident's exact time window, run it through the ASPA engine, and show that our tool flags the offending path. One concrete "we caught it" example is worth more than pages of aggregate statistics.
 
-### 11.2 ROA vs. ASPA Comparison
+**Deliverables**:
+- `src/incident_replay.py` — incident-specific ingestion + analysis
+- `output/incident_case_study.json` — flagged paths from the incident
+- Narrative write-up in the final report
 
-Run **Route Origin Validation (ROV)** on the same dataset alongside ASPA and compare:
+**Effort**: Medium — depends on RouteViews archive availability for the exact time window.
 
-- ROV checks: "Is the **origin AS** authorized to announce this prefix?" (using ROA records)
-- ASPA checks: "Is the **entire path** structurally valid?" (using ASPA records)
-
-**What to show**: A Venn diagram or table of:
-- Routes caught by ROV only
-- Routes caught by ASPA only
-- Routes caught by both
-- Routes caught by neither
-
-This directly demonstrates why ASPA is needed *in addition to* ROA — they protect against different attack types.
-
-### 11.3 Partial Deployment Curve
-
-Instead of binary "0% vs. 100% ASPA deployment," model incremental adoption:
-
-1. Randomly select X% of ASes to have ASPA records (from CAIDA data).
-2. Run the analysis engine with only that subset.
-3. Repeat for X = 10%, 20%, 30%, ..., 100%.
-4. Plot: **leak detection rate vs. ASPA deployment percentage**.
-
-**Why this matters**: It answers the practical question "How much of the internet needs to deploy ASPA before it becomes useful?" If the curve shows diminishing returns after 50%, that's a powerful policy argument.
-
-### 11.4 False Positive Analysis
+#### 11.6 False Positive Analysis
 
 CAIDA's AS-relationship data is *inferred*, not ground truth. Some relationships may be wrong, causing our engine to flag legitimate routes as leaks.
 
 **What to do**:
 - Cross-reference flagged routes against multiple data sources (PeeringDB, IRR databases).
 - Estimate a false-positive rate by sampling flagged routes and manually checking if the relationship inference seems correct.
-- Discuss the implications: "X% of our flagged routes may be false positives due to inference errors in the CAIDA dataset."
+- Discuss the implications: "X% of our flagged routes may be false positives due to inference errors."
 
-### Priority Order
+**Recommendation**: Discuss qualitatively in the report's Limitations section rather than implementing a full automated check.
 
-If time is limited, pursue them in this order (highest impact first):
+---
 
-1. **Real-world incident case study** — easiest to implement, most compelling for the report
-2. **ROA vs. ASPA comparison** — moderate effort, strong academic value
-3. **Partial deployment curve** — moderate effort, unique contribution
-4. **False positive analysis** — important for rigor but can be discussed qualitatively if time is short
+### Implementation Order
+
+| # | Research Item | Key Output | Effort | Status |
+|---|---|---|---|---|
+| 1 | Partial deployment curve | Line chart (detection % vs. adoption %) | Low | ☐ |
+| 2 | ROA vs. ASPA comparison | Venn diagram / 2×2 table | Medium | ☐ |
+| 3 | Per-country analysis | Bar chart by country/region | Medium | ☐ |
+| 4 | Path length statistics | CDF plot + statistical test | Low | ☐ |
+| 5 | Incident case study | Single flagged path proof | Medium | ☐ |
+| 6 | False positive analysis | Qualitative discussion | Low | ☐ |
 
 ---
 
