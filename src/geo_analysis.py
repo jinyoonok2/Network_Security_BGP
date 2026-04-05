@@ -21,11 +21,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-OUTPUT_DIR = os.path.join(BASE_DIR, "output")
-CHARTS_DIR = os.path.join(OUTPUT_DIR, "charts")
+from config import BASE_DIR, DATA_DIR, OUTPUT_DIR, CHARTS_DIR
 
 # RIR delegation files
 RIR_FILES = [

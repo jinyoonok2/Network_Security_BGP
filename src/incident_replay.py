@@ -29,10 +29,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from aspa_cache import ASPACache
 from aspa_verifier import verify_as_path, ASPAResult, remove_prepends
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-OUTPUT_DIR = os.path.join(BASE_DIR, "output")
+from config import BASE_DIR, DATA_DIR, OUTPUT_DIR
 
 
 # --- Known leaker and target ASNs for this incident ---

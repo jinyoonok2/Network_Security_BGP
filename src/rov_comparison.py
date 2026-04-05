@@ -28,12 +28,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from aspa_cache import ASPACache
 from aspa_verifier import verify_as_path, ASPAResult
-from analyze import load_ingested_routes
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-OUTPUT_DIR = os.path.join(BASE_DIR, "output")
-CHARTS_DIR = os.path.join(OUTPUT_DIR, "charts")
+from config import BASE_DIR, DATA_DIR, OUTPUT_DIR, CHARTS_DIR, load_ingested_routes
 
 
 class ROACache:
