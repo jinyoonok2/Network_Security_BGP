@@ -446,6 +446,10 @@ Beyond the core analysis, we conducted five additional research studies to explo
 | Routes through Rostelecom | 1,183,723 |
 | Detected as INVALID by ASPA | **1,101,575 (93.1%)** |
 
+**Chart:**
+
+![Incident ASPA Verdict Breakdown](charts/incident_aspa_verdicts.png)
+
 **Key finding:** ASPA would have detected **93.1% of Rostelecom's leaked routes.** This demonstrates that ASPA is not just a theoretical improvement — it would have caught a real, documented incident that affected millions of users. The 6.9% that were not flagged were routes where Rostelecom had legitimate provider relationships.
 
 ---
@@ -517,3 +521,4 @@ ASPA is a powerful defense against route leaks. Our analysis shows it would catc
 | `report/charts/leaks_by_country.png` | Top countries by route leak origin |
 | `report/charts/leaks_by_rir.png` | Route leaks by Regional Internet Registry |
 | `report/charts/path_length_cdf.png` | CDF of path lengths: valid vs. invalid routes |
+| `report/charts/incident_aspa_verdicts.png` | ASPA verdict breakdown: normal day vs. Rostelecom leak |

@@ -26,10 +26,15 @@ import os
 import sys
 import time
 
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from aspa_cache import ASPACache
 from aspa_verifier import verify_as_path, ASPAResult, remove_prepends
-from config import BASE_DIR, DATA_DIR, OUTPUT_DIR
+from config import BASE_DIR, DATA_DIR, OUTPUT_DIR, CHARTS_DIR
 
 
 # --- Known leaker and target ASNs for this incident ---
@@ -276,6 +281,9 @@ def main():
         print(f"  These routes would have been REJECTED, preventing the leak.")
         print(f"  {'=' * 61}")
 
+    # Visualize
+    plot_incident_chart(results)
+
     # Save
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     save_data = {
@@ -303,6 +311,88 @@ def main():
     print(f"\n  Stats saved: {stats_path}")
 
     print("\nResearch 11.5 COMPLETE ✓")
+
+
+def plot_incident_chart(results):
+    """
+    Stacked percentage bar chart comparing ASPA verdict breakdown across
+    three groups: normal baseline, all routes during incident, Rostelecom only.
+    """
+    # --- Data ---
+    # Normal day baseline (from CAIDA analysis, Jan 2024)
+    baseline = {"valid": 86.5, "invalid": 13.2, "unknown": 0.3}
+
+    def to_pct(d):
+        t = d["total"]
+        return {
+            "valid":   100 * d["valid"]   / t,
+            "invalid": 100 * d["invalid"] / t,
+            "unknown": 100 * d["unknown"] / t,
+        }
+
+    incident_all = to_pct(results["all_routes"])
+    incident_rt  = to_pct(results["rostelecom_routes"])
+
+    groups = ["Normal Day\n(Jan 2024 baseline)",
+              "During Incident\n(all routes, Apr 2020)",
+              "Rostelecom Routes\n(AS12389, Apr 2020)"]
+    valids   = [baseline["valid"],   incident_all["valid"],   incident_rt["valid"]]
+    invalids = [baseline["invalid"], incident_all["invalid"], incident_rt["invalid"]]
+    unknowns = [baseline["unknown"], incident_all["unknown"], incident_rt["unknown"]]
+
+    x = np.arange(len(groups))
+    colors = {"valid": "#2ecc71", "invalid": "#e74c3c", "unknown": "#95a5a6"}
+
+    fig, ax = plt.subplots(figsize=(9, 6))
+
+    bars_v = ax.bar(x, valids,   color=colors["valid"],   label="Valid",   zorder=3)
+    bars_i = ax.bar(x, invalids, color=colors["invalid"],  label="Invalid",
+                    bottom=valids, zorder=3)
+    bars_u = ax.bar(x, unknowns, color=colors["unknown"],  label="Unknown",
+                    bottom=[v + i for v, i in zip(valids, invalids)], zorder=3)
+
+    # Annotate each segment with its percentage
+    for bar, val in zip(bars_v, valids):
+        if val > 2:
+            ax.text(bar.get_x() + bar.get_width() / 2,
+                    bar.get_height() / 2,
+                    f"{val:.1f}%", ha="center", va="center",
+                    fontsize=11, fontweight="bold", color="white")
+
+    for bar, base, val in zip(bars_i, valids, invalids):
+        if val > 2:
+            ax.text(bar.get_x() + bar.get_width() / 2,
+                    base + val / 2,
+                    f"{val:.1f}%", ha="center", va="center",
+                    fontsize=11, fontweight="bold", color="white")
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(groups, fontsize=11)
+    ax.set_ylabel("Percentage of Routes (%)", fontsize=12)
+    ax.set_ylim(0, 110)
+    ax.set_title("ASPA Verdict Breakdown: Normal Day vs. Rostelecom Leak (Apr 2020)",
+                 fontsize=13, fontweight="bold", pad=14)
+    ax.legend(loc="upper right", fontsize=11)
+    ax.yaxis.grid(True, linestyle="--", alpha=0.5, zorder=0)
+    ax.set_axisbelow(True)
+
+    # Highlight the Rostelecom bar with a bracket annotation
+    rt_x = x[2]
+    rt_invalid_pct = incident_rt["invalid"]
+    ax.annotate(
+        f"{rt_invalid_pct:.1f}% detected\nas INVALID",
+        xy=(rt_x, valids[2] + invalids[2] / 2),
+        xytext=(rt_x + 0.42, 60),
+        fontsize=10, color="#c0392b", fontweight="bold",
+        arrowprops=dict(arrowstyle="->", color="#c0392b", lw=1.5),
+    )
+
+    plt.tight_layout()
+    os.makedirs(CHARTS_DIR, exist_ok=True)
+    out_path = os.path.join(CHARTS_DIR, "incident_aspa_verdicts.png")
+    plt.savefig(out_path, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"  Chart saved: {out_path}")
 
 
 if __name__ == "__main__":
