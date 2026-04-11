@@ -319,7 +319,9 @@ Beyond the core analysis, we conducted five additional research studies to explo
 
 **Key finding:** Detection rate **peaks at ~50% deployment** (34.7%), then decreases. This happens because at higher deployment levels, more routes can be fully verified — and most routes in normal operation are legitimate. The coverage (percentage of routes that can be classified as valid or invalid rather than unknown) steadily increases to near 100%.
 
-**Chart:** `output/charts/partial_deployment_curve.png`
+**Chart:**
+
+![Partial Deployment Curve](charts/partial_deployment_curve.png)
 
 ---
 
@@ -348,7 +350,9 @@ Beyond the core analysis, we conducted five additional research studies to explo
 
 **Key finding:** ASPA catches **12.7% of routes that ROV misses entirely**. ROV catches **3.3% that ASPA misses**. Only **0.5% overlap**. This proves the two mechanisms are **complementary** — deploying both provides much better coverage than either alone.
 
-**Chart:** `output/charts/roa_vs_aspa_venn.png`
+**Chart:**
+
+![ROA vs ASPA Venn Diagram](charts/roa_vs_aspa_venn.png)
 
 ---
 
@@ -378,7 +382,11 @@ Beyond the core analysis, we conducted five additional research studies to explo
 
 **Key finding:** The US dominates because it has the most ASes. Russia's presence is notable given that Russian networks have been involved in documented route leak incidents (see Section 9.5). The smaller countries (Bulgaria, Estonia) appear because even a single misconfigured AS in a well-connected position can affect thousands of routes.
 
-**Charts:** `output/charts/leaks_by_country.png`, `output/charts/leaks_by_rir.png`
+**Charts:**
+
+![Leaks by Country](charts/leaks_by_country.png)
+
+![Leaks by RIR](charts/leaks_by_rir.png)
 
 ---
 
@@ -409,7 +417,9 @@ Beyond the core analysis, we conducted five additional research studies to explo
 
 **Key finding:** Invalid (leaked) routes are on average **3.43 hops longer** than valid ones, and this difference is statistically significant (p ≈ 0). This makes intuitive sense — a leaked route takes a detour through unauthorized networks, adding extra hops. Path length could serve as a simple heuristic for leak detection even without ASPA.
 
-**Chart:** `output/charts/path_length_cdf.png`
+**Chart:**
+
+![Path Length CDF](charts/path_length_cdf.png)
 
 ---
 
@@ -502,8 +512,8 @@ ASPA is a powerful defense against route leaks. Our analysis shows it would catc
 
 | File | Description |
 |---|---|
-| `output/charts/partial_deployment_curve.png` | Detection rate and coverage vs. ASPA deployment % |
-| `output/charts/roa_vs_aspa_venn.png` | Venn diagram: ROA vs. ASPA detection overlap |
-| `output/charts/leaks_by_country.png` | Top countries by route leak origin |
-| `output/charts/leaks_by_rir.png` | Route leaks by Regional Internet Registry |
-| `output/charts/path_length_cdf.png` | CDF of path lengths: valid vs. invalid routes |
+| `report/charts/partial_deployment_curve.png` | Detection rate and coverage vs. ASPA deployment % |
+| `report/charts/roa_vs_aspa_venn.png` | Venn diagram: ROA vs. ASPA detection overlap |
+| `report/charts/leaks_by_country.png` | Top countries by route leak origin |
+| `report/charts/leaks_by_rir.png` | Route leaks by Regional Internet Registry |
+| `report/charts/path_length_cdf.png` | CDF of path lengths: valid vs. invalid routes |
