@@ -109,7 +109,7 @@ We answer this by:
 - The `pybgpstream` library and its C dependencies (`libwandio`, `libbgpstream`) built from source
 - `Routinator` (a tool that fetches internet security records) installed at `~/.cargo/bin/routinator`
 
-All of these were set up during Phase 1 of the project. If you are setting up on a new machine, see `PROJECT_GUIDELINE.md` Section 3 for the full steps.
+All of these were set up during Phase 1 of the project. If you are setting up on a new machine, see `PROJECT_GUIDELINE.md` Section 2 for the full steps.
 
 ### Activate the environment
 
@@ -137,7 +137,7 @@ The `data/` folder is not in this repository because the files are too large. Th
 ├── charts/                Saved chart images (in this repository)
 ├── data/                  Input data files (not in git — too large)
 ├── output/                Results produced by the scripts (not in git)
-└── PROJECT_GUIDELINE.md   Detailed technical setup notes
+└── PROJECT_GUIDELINE.md   Implementation and setup guide (how to rebuild from scratch)
 ```
 
 ---
