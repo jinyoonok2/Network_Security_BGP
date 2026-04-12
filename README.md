@@ -145,6 +145,10 @@ Simulates 10% through 100% of networks publishing security records and measures 
 
 Saves: `output/partial_deployment_stats.json`, `output/charts/partial_deployment_curve.png`
 
+![Partial deployment curve](report/charts/partial_deployment_curve.png)
+
+The left axis (blue line) shows how many suspicious routes get caught. The right axis (green line) shows what share of routes can be checked at all. Detection peaks around 50% adoption, then falls as more routes get confirmed as legitimate.
+
 ---
 
 #### Does this method catch different problems than the existing method?
@@ -156,6 +160,10 @@ python src/rov_comparison.py
 Runs two different checks on the same data — one that only inspects the first network in a route (the existing method, called ROV) and one that inspects the entire route (ASPA). Shows how many routes each method catches on its own vs. together.
 
 Saves: `output/rov_vs_aspa_stats.json`, `output/charts/roa_vs_aspa_venn.png`
+
+![ROA vs ASPA Venn diagram](report/charts/roa_vs_aspa_venn.png)
+
+The two circles show routes flagged by each method. The large right circle (ASPA-only) shows that checking the full route catches significantly more problems than the existing approach alone.
 
 ---
 
@@ -169,6 +177,10 @@ Maps each flagged network to its country of registration using public records fr
 
 Saves: `output/geo_stats.json`, `output/charts/leaks_by_country.png`, `output/charts/leaks_by_rir.png`
 
+![Leaks by country](report/charts/leaks_by_country.png)
+
+The US ranks first because it has the most registered networks. Russia and Bulgaria stand out despite their smaller size — even one misconfigured network in a well-connected position can affect thousands of routes.
+
 ---
 
 #### Are routes with problems noticeably longer than normal ones?
@@ -180,6 +192,10 @@ python src/path_length_analysis.py
 Compares the number of hops in flagged routes vs. clean routes and tests whether the difference is statistically meaningful.
 
 Saves: `output/charts/path_length_cdf.png` and prints test results to the console.
+
+![Path length CDF](report/charts/path_length_cdf.png)
+
+The red curve (invalid routes) is shifted noticeably to the right — flagged routes have on average 3.4 more hops than clean ones. This gap is statistically significant (p ≈ 0), meaning it is not random chance.
 
 ---
 
@@ -194,6 +210,10 @@ Re-downloads routing data from April 1, 2020 — the date of the Rostelecom leak
 > This step requires an internet connection and takes several minutes (fetches ~1 million routes).
 
 Saves: `output/incident_case_study.json`, `output/charts/incident_aspa_verdicts.png`
+
+![Incident ASPA verdict breakdown](report/charts/incident_aspa_verdicts.png)
+
+The three bars show the same check applied to three different snapshots. On a normal day (left) most routes pass. During the incident (middle) the invalid share jumps dramatically. Looking only at Rostelecom's routes (right), 93.1% are flagged — the tool would have identified and blocked the leak.
 
 ---
 
