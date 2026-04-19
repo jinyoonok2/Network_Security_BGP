@@ -469,30 +469,41 @@ The red curve (invalid routes) is shifted noticeably to the right compared to th
 python src/incident_replay.py
 ```
 
-> Requires an internet connection. Takes several minutes (fetches roughly 1 million routes).
+> Requires an internet connection. Takes several minutes (fetches roughly 5 million routes).
 
 **Question:** Would ASPA have caught a real, documented route leak?
 
 **The incident:** On April 1, 2020, AS12389 (Rostelecom, Russia's national telecom) accidentally leaked routes to Cloudflare, Amazon AWS, Akamai, and other major services. Traffic that should have gone directly to these services was instead funneled through Russia. This affected users worldwide.
 
 **What the code does:**
-1. `ingest_incident_data()` downloads real routing data from the exact time window of the incident (2020-04-01 19:00–20:00 UTC) using the same RouteViews archive.
-2. The script filters for routes that passed through Rostelecom and the affected services.
-3. `analyze_incident()` runs every one of those routes through our checker.
+1. `ingest_incident_data()` downloads real routing data from the exact time window of the incident (2020-04-01 19:00–20:00 UTC) using the RouteViews archive.
+2. The script filters routes at three levels: all routes through Rostelecom, routes involving known victim ASNs, and **prefix-filtered** routes where the announced prefix matches a known victim address range (Cloudflare, Akamai, Amazon, Meta, Microsoft).
+3. `analyze_incident()` runs every route through our checker using **April 2020 CAIDA relationship data** (temporally matched to the incident — not the Jan 2024 file used in the main analysis).
+
+**Methodology notes:**
+- **Prefix filtering** ensures we only measure detection on actual leak traffic, not Rostelecom's legitimate business routes (which would inflate the detection rate as false positives).
+- **Temporal matching** uses the `20200401.as-rel2.txt.bz2` CAIDA file so that network relationships reflect the state at the time of the incident, avoiding false signals from relationships that changed over the following 4 years.
 
 **Results:**
 
 | Metric | Value |
 |---|---|
 | Total routes in the 1-hour window | 5,115,046 |
-| Routes that passed through Rostelecom | 1,183,723 |
-| Flagged as invalid by ASPA | **1,101,575 (93.1%)** |
+| Routes through Rostelecom (all traffic) | 1,183,723 |
+| Routes through Rostelecom + victim prefixes | 79,440 |
+| Flagged as invalid (prefix-filtered) | **3,202 (4.0%)** |
 
 ![Incident ASPA verdict breakdown](charts/incident_aspa_verdicts.png)
 
-The chart compares three snapshots: a normal day (left), all routes during the incident (center), and just Rostelecom's routes (right). The progression is dramatic — on a normal day most routes pass, but during the incident the bad share jumps sharply, and looking at Rostelecom alone, 93.1% are flagged.
+The chart compares four snapshots: a normal day baseline (far left), all routes during the incident (center-left), all Rostelecom routes including legitimate business traffic (center-right), and **prefix-filtered routes carrying only victim traffic** (far right). The prefix-filtered bar isolates actual leak traffic from Rostelecom's legitimate transit.
 
-**What this means:** ASPA is not just a theoretical improvement. It would have caught a real incident that disrupted internet service for millions of people. The 6.9% that were not flagged were routes where Rostelecom had legitimate provider relationships.
+**Why the detection rate is 4.0%, not higher:**
+
+Rostelecom (AS12389) is a major Tier-1 transit provider with legitimate peering relationships with most of the world's large networks. In the CAIDA relationship data, many of the paths through Rostelecom — even those carrying victim prefixes — traverse chains of legitimate provider-customer links (e.g., AS12389 → AS1273 → AS16509). ASPA checks whether each hop has an authorized provider relationship, and these hops genuinely do. The leak was not that Rostelecom *lacked* relationships, but that it *re-announced* routes from peers to other peers (a classic route leak, RFC 7908 Type 1).
+
+ASPA catches the 4.0% of routes where the path structure clearly violates the authorization chain. The remaining routes propagated through legitimate-looking transit paths. This highlights an important finding: **ASPA is most effective when combined with other defenses** (ROV for origin validation, BGP communities, peer filtering), rather than as a standalone solution.
+
+**What this means:** ASPA provides a meaningful layer of defense — 3,202 leaked routes would have been rejected — but it is not a complete solution for all types of route leaks. Its detection strength depends on how directly the attacker violates provider authorization, versus leaking through otherwise-legitimate transit chains. This reinforces Finding #4 (ASPA + ROV together catch more than either alone).
 
 ---
 
@@ -505,11 +516,11 @@ The chart compares three snapshots: a normal day (left), all routes during the i
 | 3 | **Detection peaks at 50% adoption** (34.7%) | Even partial adoption gives strong benefits — no need to wait for 100% |
 | 4 | **ASPA catches 12.7% of routes** that the existing method misses | ASPA and the existing method (ROV) catch different problems — both are needed |
 | 5 | **Flagged routes are 3.4 hops longer** (statistically significant) | Path length is a useful secondary signal for detecting leaks |
-| 6 | **93.1% detection rate** on the 2020 Rostelecom incident | ASPA would have stopped a real-world disruption |
+| 6 | **4.0% detection rate** on the 2020 Rostelecom incident (prefix-filtered, temporally matched) | ASPA catches direct authorization violations; layered defenses needed for full protection |
 
 ### The bottom line
 
-ASPA is a powerful defense against route leaks. It would catch the vast majority of suspicious routes — but only if networks actually adopt it. With only 1,543 out of roughly 75,000 networks publishing records today, the internet remains largely unprotected. The good news: our partial deployment analysis shows that even 30–50% adoption already provides strong protection, making a compelling case for getting started now rather than waiting for universal coverage.
+ASPA is a powerful defense against route leaks, but it works best as part of a layered security strategy. Our incident replay shows that ASPA catches direct authorization violations (4.0% of leaked victim traffic in the Rostelecom case) while routes that leak through otherwise-legitimate transit chains require complementary defenses like ROV and peer filtering. With only 1,543 out of roughly 75,000 networks publishing records today, the internet remains largely unprotected. The good news: our partial deployment analysis shows that even 30–50% adoption already provides strong protection, making a compelling case for getting started now rather than waiting for universal coverage.
 
 ---
 
@@ -535,7 +546,8 @@ ASPA is a powerful defense against route leaks. It would catch the vast majority
 | File | What it is |
 |---|---|
 | `data/rpki_vrps_with_aspa.json` | Real signed records (802,506 ROAs + 1,543 ASPAs) |
-| `data/20240101.as-rel2.txt.bz2` | CAIDA network relationship data (75,865 pairs) |
+| `data/20240101.as-rel2.txt.bz2` | CAIDA network relationship data (75,865 pairs) — used for main analysis |
+| `data/20200401.as-rel2.txt.bz2` | CAIDA relationship data from April 2020 (67,887 pairs) — used for incident replay |
 | `data/delegated-*.txt` | Country registration files from 5 registries |
 
 ### Output files (not in git — regenerated by running scripts)
