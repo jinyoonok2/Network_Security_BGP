@@ -461,6 +461,18 @@ def plot_incident_chart(results):
     ax.yaxis.grid(True, linestyle="--", alpha=0.5, zorder=0)
     ax.set_axisbelow(True)
 
+    # Annotate the 0.3% unknown on bar 3 (too small to see)
+    rt_x = x[2]
+    rt_unknown_pct = incident_rt["unknown"]
+    if rt_unknown_pct > 0:
+        ax.annotate(
+            f"{rt_unknown_pct:.1f}% unknown",
+            xy=(rt_x, valids[2] + invalids[2] + rt_unknown_pct / 2),
+            xytext=(rt_x + 0.35, 108),
+            fontsize=9, color="#7f8c8d", fontstyle="italic",
+            arrowprops=dict(arrowstyle="->", color="#95a5a6", lw=1.2),
+        )
+
     # Highlight the prefix-filtered bar
     pf_x = x[3]
     pf_invalid_pct = incident_pf["invalid"]
