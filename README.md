@@ -50,20 +50,37 @@ relationship data              path checking engine
 
 `data/` and `output/` are ignored by git because they contain large or reproducible files. `charts/` is committed because the figures are part of the project deliverable.
 
-## Environment
+## Setup
 
-The project was developed in a conda environment named `bgp_aspa`.
+The project was developed with Python 3.10 in a conda environment named `bgp_aspa`.
+
+Create and activate the environment:
 
 ```bash
+conda create -n bgp_aspa python=3.10
 conda activate bgp_aspa
 ```
 
-Required tools and libraries:
+Install Python packages:
 
-- Python 3.10
-- `pybgpstream` and its native dependencies
-- `routinator`
-- Python plotting and analysis libraries used by the scripts, including `matplotlib`, `numpy`, and `scipy`
+```bash
+pip install -r requirements.txt
+```
+
+`requirements.txt` includes the Python packages used by the scripts:
+
+- `matplotlib`
+- `numpy`
+- `scipy`
+- `pybgpstream`
+
+`pybgpstream` also depends on native BGPStream libraries (`libbgpstream` and `libwandio`). If `pip install -r requirements.txt` fails while installing `pybgpstream`, install those native dependencies first, then rerun the pip command.
+
+Routinator is also required if you want to regenerate the RPKI JSON file:
+
+```bash
+routinator vrps --format json --enable-aspa > data/rpki_vrps_with_aspa.json
+```
 
 ## Required Data Files
 
@@ -76,12 +93,6 @@ Place these files in `data/` before running the full pipeline.
 | `data/20200401.as-rel2.txt.bz2` | Rostelecom 2020 incident replay |
 | `data/20190601.as-rel2.txt.bz2` | Verizon/DQE 2019 incident replay |
 | `data/delegated-*.txt` | country and RIR mapping |
-
-Generate the Routinator file with:
-
-```bash
-routinator vrps --format json --enable-aspa > data/rpki_vrps_with_aspa.json
-```
 
 Download CAIDA relationship files from the CAIDA AS Relationships dataset. Use the `serial-2` files because this code expects the `as-rel2` format.
 
