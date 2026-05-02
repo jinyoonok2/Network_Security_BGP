@@ -84,7 +84,18 @@ routinator vrps --format json --enable-aspa > data/rpki_vrps_with_aspa.json
 
 ## Required Data Files
 
-Place these files in `data/` before running the full pipeline.
+For convenience, archived copies of the required `data/` and generated `output/` folders are available here:
+
+[Download data.zip and output.zip from Google Drive](https://drive.google.com/drive/folders/1M1Ix-EVTNk-aD1KNOMh7Fzn2gv1sbwq_?usp=sharing)
+
+After downloading, unzip them at the repository root so the folders appear as:
+
+```text
+data/
+output/
+```
+
+If you prefer to rebuild everything manually, place these files in `data/` before running the full pipeline.
 
 | File | Used by |
 |---|---|
